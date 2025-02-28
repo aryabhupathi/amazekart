@@ -159,6 +159,7 @@ const ProductList = () => {
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
+                padding:'5px'
               }}
             >
               <CardMedia
