@@ -3,7 +3,6 @@ import { Provider } from "react-redux";
 import store from "./components/redux/Store";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { Container, Box } from "@mui/material";
-import Home from "./components/Home/Homepage"
 import ProductList from "./components/Product/ProductList";
 import ProductDetail from "./components/Product/ProductDetail";
 import Header from "./components/Header/Header";
@@ -20,8 +19,7 @@ const App = () => {
           <Header />
           <Container sx={{ flex: 1 }}>
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/product" element={<ProductList />} />
+              <Route path="/" element={<ProductList />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
             </Routes>

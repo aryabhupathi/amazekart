@@ -22,9 +22,6 @@ const Header = () => {
         </Button>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Button color="inherit" component={Link} to="/product">
-            All Products
-          </Button>
           <IconButton component={Link} to="/cart" color="inherit">
             <Badge badgeContent={totalCartItems} color="error">
               <ShoppingCartIcon />

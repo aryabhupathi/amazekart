@@ -1,66 +1,77 @@
-
 import React, { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
-  Card,
-  CardContent,
+  Container,
+  Box,
   Typography,
-  Button,
-  CardMedia,
-  MenuItem,
-  Select,
   FormControl,
   InputLabel,
-  Box,
-  Container,
-  Divider,
+  MenuItem,
+  Select,
+  Button,
+  Card,
+  CardContent,
+  CardMedia,
   Pagination,
+  Divider,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { Link } from "react-router-dom";
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 8;
 
 const ProductList = () => {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialCategory =
+    queryParams.get("category") ||
+    localStorage.getItem("selectedCategory") ||
+    "";
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
+    fetch("https://fakestoreapi.com/products/categories")
+      .then((res) => res.json())
+      .then((data) => setCategories(data));
+
     fetch("https://fakestoreapi.com/products")
       .then((res) => res.json())
       .then((data) => {
         setProducts(data);
-        setFilteredProducts(data);
+        applyFilter(data, initialCategory);
       });
+  }, [initialCategory]);
 
-    fetch("https://fakestoreapi.com/products/categories")
-      .then((res) => res.json())
-      .then((data) => setCategories(data));
-  }, []);
+  useEffect(() => {
+    applyFilter(products, selectedCategory);
+    localStorage.setItem("selectedCategory", selectedCategory);
+  }, [selectedCategory, products]);
+
+  const applyFilter = (allProducts, category) => {
+    if (!category) {
+      setFilteredProducts(allProducts);
+    } else {
+      setFilteredProducts(
+        allProducts.filter((product) => product.category === category)
+      );
+    }
+    setCurrentPage(1);
+  };
 
   const handleFilterChange = (event) => {
     const category = event.target.value;
     setSelectedCategory(category);
-    setCurrentPage(1)
-
-    if (category === "") {
-      setFilteredProducts(products);
-    } else {
-      setFilteredProducts(
-        products.filter((product) => product.category === category)
-      );
-    }
   };
 
   const resetFilter = () => {
     setSelectedCategory("");
-    setFilteredProducts(products);
-    setCurrentPage(1);
+    localStorage.removeItem("selectedCategory");
   };
 
-  // Pagination 
+  // Pagination
   const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
   const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
   const currentProducts = filteredProducts.slice(
@@ -74,43 +85,22 @@ const ProductList = () => {
 
   return (
     <Container sx={{ mt: 4 }}>
-      {/* Filter */}
-      {/* <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          borderRadius: 1,
-          border:'2px solid red'
-        }}
+      {/* Heading */}
+      <Box
+        textAlign="center"
+        py={3}
+        sx={{ bgcolor: "#FFF", borderRadius: 2, mb: 3 }}
       >
-        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-          Filter Products
+        <Typography variant="h4" fontWeight="bold" color="#FF5722" gutterBottom>
+          Welcome to ShopCart
         </Typography>
-        <Box sx={{ display: "flex", alignItems: "center", padding: 2 }}>
-          <FormControl sx={{ padding:1, minWidth: 120 }} size="small">
-            <InputLabel id="demo-select-small-label">Category</InputLabel>
-            <Select
-              labelId="demo-select-small-label"
-              id="demo-select-small"
-              value={selectedCategory}
-              onChange={handleFilterChange}
-              label="Category"
-            >
-              <MenuItem value="">All</MenuItem>
-              {categories.map((category) => (
-                <MenuItem key={category} value={category}>
-                  {category.toUpperCase()}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button onClick={resetFilter} variant="contained" color="secondary">
-            Reset
-          </Button>
-        </Box>
-      </Box> */}
+        <Typography variant="h6" color="textSecondary" maxWidth={600} mx="auto">
+          Discover top-quality products at unbeatable prices. Shop from a
+          variety of categories and find everything you need in one place.
+        </Typography>
+      </Box>
 
+      {/* Filter Section */}
       <Box
         sx={{
           display: "flex",
@@ -119,23 +109,25 @@ const ProductList = () => {
           borderRadius: 1,
           padding: 1,
           marginBottom: 2,
-          backgroundColor: "#fDfDfD"
+          backgroundColor: "#fDfDfD",
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: "bold", whiteSpace: "nowrap" }}>
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: "bold", whiteSpace: "nowrap" }}
+        >
           Filter Products
         </Typography>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <FormControl sx={{ minWidth: 120 }} size="small">
-            <InputLabel id="demo-select-small-label">Category</InputLabel>
+            <InputLabel id="category-select-label">Category</InputLabel>
             <Select
-              labelId="demo-select-small-label"
-              id="demo-select-small"
+              labelId="category-select-label"
+              id="category-select"
               value={selectedCategory}
               onChange={handleFilterChange}
               label="Category"
             >
-              <MenuItem value="">All</MenuItem>
               {categories.map((category) => (
                 <MenuItem key={category} value={category}>
                   {category.toUpperCase()}
@@ -143,7 +135,13 @@ const ProductList = () => {
               ))}
             </Select>
           </FormControl>
-          <Button onClick={resetFilter} variant="contained" color="secondary" size="small">
+          <Button
+            onClick={resetFilter}
+            variant="contained"
+            color="secondary"
+            size="small"
+            disabled={!selectedCategory}
+          >
             Reset
           </Button>
         </Box>
@@ -151,9 +149,10 @@ const ProductList = () => {
 
       <Divider sx={{ mb: 3 }} />
 
+      {/* Product */}
       <Grid container spacing={3}>
         {currentProducts.map((product) => (
-          <Grid item key={product.id} size={{xs:12, sm:6, md:4, lg:3}}>
+          <Grid item key={product.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
             <Card
               sx={{
                 height: "100%",
@@ -206,6 +205,7 @@ const ProductList = () => {
         ))}
       </Grid>
 
+      {/* Pagination */}
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
         <Pagination
           count={Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)}

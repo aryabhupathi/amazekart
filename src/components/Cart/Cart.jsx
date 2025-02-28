@@ -26,12 +26,6 @@ const Cart = () => {
     0
   );
 
-  const handleBuyNow = () => {
-    if (cart.length > 0) {
-      setOpenSnackbar(true);
-    }
-  };
-
   return (
     <Box sx={{ p: 3 }}>
       <Typography
@@ -157,9 +151,6 @@ const Cart = () => {
             <Typography variant="h5" sx={{ fontWeight: "bold" }}>
               Total Amount: ${totalAmount.toFixed(2)}
             </Typography>
-            <Button variant="contained" color="primary" onClick={handleBuyNow}>
-              Buy Now
-            </Button>
           </Box>
         </>
       )}
