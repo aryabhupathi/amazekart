@@ -7,7 +7,8 @@ import { Button, Box } from "@mui/material";
 
 const Header = () => {
   const cart = useSelector((state) => state.cart);
-  const totalCartItems = cart.reduce((total, item) => total + item.quantity, 0);
+  const totalCartItems = cart.reduce((total, item) => item.quantity + total, 0);
+  const cartCount = cart.length;
 
   return (
     <AppBar position="static">
@@ -23,7 +24,7 @@ const Header = () => {
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
           <IconButton component={Link} to="/cart" color="inherit">
-            <Badge badgeContent={totalCartItems} color="error">
+            <Badge badgeContent={cartCount} color="error">
               <ShoppingCartIcon />
             </Badge>
           </IconButton>

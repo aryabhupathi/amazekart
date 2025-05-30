@@ -14,11 +14,11 @@ import {
   CardMedia,
   Pagination,
   Divider,
+  CircularProgress,
+  Tooltip,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-
 const ITEMS_PER_PAGE = 8;
-
 const ProductList = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -31,106 +31,135 @@ const ProductList = () => {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [currentPage, setCurrentPage] = useState(1);
-
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
-    fetch("https://fakestoreapi.com/products/categories")
-      .then((res) => res.json())
-      .then((data) => setCategories(data));
-
-    fetch("https://fakestoreapi.com/products")
-      .then((res) => res.json())
-      .then((data) => {
-        setProducts(data);
-        applyFilter(data, initialCategory);
-      });
-  }, [initialCategory]);
-
+    Promise.all([
+      fetch("https://fakestoreapi.com/products/categories").then((res) =>
+        res.json()
+      ),
+      fetch("https://fakestoreapi.com/products").then((res) => res.json()),
+    ])
+      .then(([categoryData, productData]) => {
+        setCategories(categoryData);
+        setProducts(productData);
+      })
+      .finally(() => setLoading(false));
+  }, []);
   useEffect(() => {
-    applyFilter(products, selectedCategory);
+    if (!products.length) return;
+    const filtered = selectedCategory
+      ? products.filter((p) => p.category === selectedCategory)
+      : products;
+    setFilteredProducts(filtered);
     localStorage.setItem("selectedCategory", selectedCategory);
-  }, [selectedCategory, products]);
-
-  const applyFilter = (allProducts, category) => {
-    if (!category) {
-      setFilteredProducts(allProducts);
-    } else {
-      setFilteredProducts(
-        allProducts.filter((product) => product.category === category)
-      );
-    }
     setCurrentPage(1);
-  };
-
+  }, [products, selectedCategory]);
   const handleFilterChange = (event) => {
-    const category = event.target.value;
-    setSelectedCategory(category);
+    setSelectedCategory(event.target.value);
   };
-
   const resetFilter = () => {
     setSelectedCategory("");
     localStorage.removeItem("selectedCategory");
   };
-
-  // Pagination
+  const handlePageChange = (value) => {
+    setCurrentPage(value);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
   const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
   const currentProducts = filteredProducts.slice(
     indexOfFirstItem,
     indexOfLastItem
   );
-
-  const handlePageChange = (event, value) => {
-    setCurrentPage(value);
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(price);
   };
-
+  if (loading) {
+    return (
+      <Container sx={{ mt: 10, textAlign: "center" }}>
+        <CircularProgress color="secondary" />
+      </Container>
+    );
+  }
   return (
     <Container sx={{ mt: 4 }}>
-      {/* Heading */}
       <Box
         textAlign="center"
-        py={3}
-        sx={{ bgcolor: "#FFF", borderRadius: 2, mb: 3 }}
+        py={4}
+        px={3}
+        sx={{ bgcolor: "#fff8f0", borderRadius: 3, mb: 4 }}
       >
-        <Typography variant="h4" fontWeight="bold" color="#FF5722" gutterBottom>
+        <Typography variant="h3" fontWeight="bold" color="#d84315" gutterBottom>
           Welcome to ShopCart
         </Typography>
-        <Typography variant="h6" color="textSecondary" maxWidth={600} mx="auto">
+        <Typography variant="h6" color="textSecondary" maxWidth={700} mx="auto">
           Discover top-quality products at unbeatable prices. Shop from a
           variety of categories and find everything you need in one place.
         </Typography>
       </Box>
-
-      {/* Filter Section */}
       <Box
         sx={{
+          p: 3,
+          mb: 4,
+          borderRadius: 4,
+          bgcolor: "white",
+          boxShadow: 3,
+          border: "1px solid #e0e0e0",
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          borderRadius: 1,
-          padding: 1,
-          marginBottom: 2,
-          backgroundColor: "#fDfDfD",
+          flexDirection: { xs: "column", sm: "row" },
+          justifyContent: { xs: "center", sm: "space-between" },
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: 2,
+          transition: "all 0.3s ease-in-out",
+          "&:hover": {
+            boxShadow: 6,
+          },
         }}
       >
         <Typography
           variant="h6"
-          sx={{ fontWeight: "bold", whiteSpace: "nowrap" }}
+          sx={{
+            fontWeight: 700,
+            color: "#d84315",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
         >
           Filter Products
         </Typography>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <FormControl sx={{ minWidth: 120 }} size="small">
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            justifyContent: { xs: "center", sm: "flex-end" },
+            alignItems: { xs: "stretch", sm: "center" },
+            gap: 2,
+            width: { xs: "100%", sm: "auto" },
+          }}
+        >
+          <FormControl sx={{ width: { xs: "100%", sm: 150 } }} size="small">
             <InputLabel id="category-select-label">Category</InputLabel>
             <Select
               labelId="category-select-label"
-              id="category-select"
               value={selectedCategory}
               onChange={handleFilterChange}
               label="Category"
+              sx={{
+                borderRadius: 2,
+                bgcolor: "#fff",
+                boxShadow: 1,
+              }}
             >
+              <MenuItem value="">
+                <em>All Categories</em>
+              </MenuItem>
               {categories.map((category) => (
                 <MenuItem key={category} value={category}>
-                  {category.toUpperCase()}
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
                 </MenuItem>
               ))}
             </Select>
@@ -138,75 +167,103 @@ const ProductList = () => {
           <Button
             onClick={resetFilter}
             variant="contained"
-            color="secondary"
-            size="small"
+            color="error"
             disabled={!selectedCategory}
+            sx={{
+              textTransform: "none",
+              px: 2,
+              borderRadius: 2,
+              fontWeight: 600,
+              boxShadow: 2,
+              alignSelf: { xs: "center", sm: "flex-end" },
+              "&:hover": {
+                boxShadow: 4,
+              },
+            }}
           >
-            Reset
+            Reset Filter
           </Button>
         </Box>
       </Box>
-
-      <Divider sx={{ mb: 3 }} />
-
-      {/* Product */}
+      <Divider sx={{ mb: 4 }} />
       <Grid container spacing={3}>
-        {currentProducts.map((product) => (
-          <Grid item key={product.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-            <Card
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                padding:'5px'
-              }}
-            >
-              <CardMedia
-                sx={{ height: 180, backgroundSize: "contain" }}
-                image={product.image}
-                title={product.title}
-              />
-              <CardContent
-                sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}
+        {currentProducts.length === 0 ? (
+          <Typography variant="h6" align="center" sx={{ width: "100%", mt: 4 }}>
+            No products found in this category.
+          </Typography>
+        ) : (
+          currentProducts.map((product) => (
+            <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={product.id}>
+              <Card
+                sx={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  borderRadius: 3,
+                  boxShadow: 4,
+                  transition: "transform 0.2s",
+                  "&:hover": { transform: "scale(1.03)" },
+                }}
               >
-                <Typography
-                  variant="h6"
+                <CardMedia
+                  component="img"
                   sx={{
-                    fontSize: 16,
-                    fontWeight: "bold",
-                    mb: 1,
-                    overflow: "hidden",
-                    display: "-webkit-box",
-                    WebkitBoxOrient: "vertical",
-                    WebkitLineClamp: 2,
+                    height: { xs: 160, sm: 180 },
+                    objectFit: "contain",
+                    width: "100%",
+                    borderRadius: "8px 8px 0 0",
+                    transition: "transform 0.3s ease",
+                    "&:hover": {
+                      transform: "scale(1.05)",
+                    },
+                    paddingTop: 2,
                   }}
+                  image={product.image}
+                  alt={product.title}
+                />
+                <CardContent
+                  sx={{ display: "flex", flexDirection: "column", flexGrow: 1 }}
                 >
-                  {product.title}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="textSecondary"
-                  sx={{ mb: 1 }}
-                >
-                  ${product.price}
-                </Typography>
-                <Box sx={{ flexGrow: 1 }} />
-                <Button
-                  component={Link}
-                  to={`/product/${product.id}`}
-                  variant="contained"
-                  sx={{ width: "100%", mt: "auto" }}
-                >
-                  View Details
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
+                  <Tooltip title={product.title}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="bold"
+                      sx={{
+                        overflow: "hidden",
+                        display: "-webkit-box",
+                        WebkitBoxOrient: "vertical",
+                        WebkitLineClamp: 2,
+                        mb: 1,
+                      }}
+                    >
+                      {product.title}
+                    </Typography>
+                  </Tooltip>
+                  <Typography
+                    variant="body2"
+                    color="textSecondary"
+                    sx={{ mb: 1 }}
+                  >
+                    {formatPrice(product.price)}
+                  </Typography>
+                  <Box sx={{ flexGrow: 1 }} />
+                  <Button
+                    component={Link}
+                    to={`/product/${product.id}`}
+                    variant="contained"
+                    color="primary"
+                    sx={{ mt: 2 }}
+                    fullWidth
+                  >
+                    View Details
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))
+        )}
       </Grid>
-
-      {/* Pagination */}
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
         <Pagination
           count={Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)}
@@ -218,5 +275,4 @@ const ProductList = () => {
     </Container>
   );
 };
-
 export default ProductList;
