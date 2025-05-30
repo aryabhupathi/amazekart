@@ -7,7 +7,6 @@ import { Button, Box } from "@mui/material";
 
 const Header = () => {
   const cart = useSelector((state) => state.cart);
-  const totalCartItems = cart.reduce((total, item) => item.quantity + total, 0);
   const cartCount = cart.length;
 
   return (
