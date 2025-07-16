@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Card,
@@ -15,62 +15,93 @@ import Grid from "@mui/material/Grid2";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { cartUpdate, cartRemove } from "../redux/Actions";
-
 const Cart = () => {
   const cart = useSelector((state) => state.cart);
   const dispatch = useDispatch();
   const [openSnackbar, setOpenSnackbar] = useState(false);
-
   const totalAmount = cart.reduce(
     (total, item) => total + item.price * item.quantity,
     0
   );
-
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200, mx: "auto" }}>
       <Typography
         variant="h4"
-        sx={{ mb: 3, textAlign: "center", fontWeight: "bold" }}
+        sx={{
+          mb: 3,
+          textAlign: "center",
+          fontWeight: "bold",
+          color: "#FF6B6B",
+        }}
       >
         Shopping Cart
       </Typography>
-
       {cart.length === 0 ? (
-        <Typography
-          variant="body1"
-          sx={{ textAlign: "center", fontSize: "1.2rem" }}
+        <Box
+          sx={{
+            textAlign: "center",
+            py: 6,
+            bgcolor: "#fff8f0",
+            borderRadius: 3,
+            boxShadow: 2,
+          }}
         >
-          Your cart is empty.
-        </Typography>
+          <Typography variant="h6" sx={{ fontSize: "1.2rem", color: "#555" }}>
+            Your cart is empty.
+          </Typography>
+          <Button
+            component="a"
+            href="/products"
+            variant="contained"
+            sx={{
+              mt: 2,
+              bgcolor: "#FF6B6B",
+              color: "#fff",
+              "&:hover": {
+                bgcolor: "#F9A825",
+              },
+            }}
+          >
+            Browse Products
+          </Button>
+        </Box>
       ) : (
         <>
           <Grid container spacing={3}>
             {cart.map((item) => (
-              <Grid item size={{ xs: 12, sm: 6 }} key={item.id}>
+              <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.id}>
                 <Card
                   sx={{
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    boxShadow: 3,
+                    boxShadow: 4,
                     padding: 2,
                     textAlign: "center",
+                    borderRadius: 3,
+                    transition: "transform 0.3s ease",
+                    "&:hover": {
+                      transform: "scale(1.03)",
+                    },
                   }}
                 >
                   <CardMedia
                     component="img"
                     sx={{
-                      width: "100px",
-                      height: "100px",
+                      width: "120px",
+                      height: "120px",
                       objectFit: "contain",
                       margin: "auto",
+                      borderRadius: 2,
+                      boxShadow: 2,
+                      bgcolor: "#fff",
+                      p: 1,
                     }}
                     image={item.image}
-                    title={item.title}
+                    alt={item.title}
                   />
-
-                  <CardContent sx={{ flexGrow: 1 }}>
+                  <CardContent sx={{ flexGrow: 1, px: 1 }}>
                     <Typography
                       variant="h6"
                       sx={{
@@ -79,20 +110,27 @@ const Cart = () => {
                         display: "-webkit-box",
                         overflow: "hidden",
                         WebkitBoxOrient: "vertical",
-                        WebkitLineClamp: 1,
+                        WebkitLineClamp: 2,
+                        color: "#333",
                       }}
                     >
                       {item.title}
                     </Typography>
-                    <Typography variant="body1">
-                      Price: ${item.price}
+                    <Typography variant="body1" sx={{ color: "#e65100" }}>
+                      Price: ${parseFloat(item.price).toFixed(2)}
                     </Typography>
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={{ color: "#2e7d32" }}>
                       Total: ${(item.price * item.quantity).toFixed(2)}
                     </Typography>
                   </CardContent>
-
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: 1,
+                    }}
+                  >
                     <IconButton
                       onClick={() =>
                         dispatch(
@@ -103,6 +141,12 @@ const Cart = () => {
                         )
                       }
                       disabled={item.quantity <= 1}
+                      sx={{
+                        color: "#d32f2f",
+                        "&:hover": {
+                          bgcolor: "#ffebee",
+                        },
+                      }}
                     >
                       <RemoveIcon />
                     </IconButton>
@@ -118,55 +162,92 @@ const Cart = () => {
                           })
                         )
                       }
+                      sx={{
+                        color: "#2e7d32",
+                        "&:hover": {
+                          bgcolor: "#e8f5e9",
+                        },
+                      }}
                     >
                       <AddIcon />
                     </IconButton>
                   </Box>
-
                   <Button
                     onClick={() => dispatch(cartRemove(item.id))}
-                    variant="contained"
+                    variant="outlined"
                     color="error"
-                    sx={{ mt: 1 }}
+                    size="small"
+                    sx={{
+                      mt: 1,
+                      textTransform: "none",
+                      borderColor: "#ef5350",
+                      color: "#ef5350",
+                      "&:hover": {
+                        bgcolor: "#ef5350",
+                        color: "#fff",
+                      },
+                    }}
                   >
-                    Remove
+                    Remove from Cart
                   </Button>
                 </Card>
               </Grid>
             ))}
           </Grid>
-
           <Box
             sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mt: 4,
-              p: 2,
-              bgcolor: "whitesmoke",
-              borderRadius: 2,
-              boxShadow: 2,
+              mt: 5,
+              p: 3,
+              bgcolor: "#fff0f4",
+              borderRadius: 3,
+              boxShadow: 3,
+              textAlign: "center",
             }}
           >
-            <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: "bold",
+                color: "#FF6B6B",
+              }}
+            >
               Total Amount: ${totalAmount.toFixed(2)}
             </Typography>
+            <Button
+              onClick={() => setOpenSnackbar(true)}
+              variant="contained"
+              sx={{
+                mt: 2,
+                bgcolor: "#FF6B6B",
+                color: "#fff",
+                fontWeight: "bold",
+                "&:hover": {
+                  bgcolor: "#F9A825",
+                },
+                width: "100%",
+                py: 1.2,
+              }}
+            >
+              Checkout
+            </Button>
           </Box>
         </>
       )}
-
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}
         onClose={() => setOpenSnackbar(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity="success" onClose={() => setOpenSnackbar(false)}>
-          Purchase Successful!
+        <Alert
+          severity="success"
+          onClose={() => setOpenSnackbar(false)}
+          sx={{ width: "100%", fontWeight: "bold" }}
+        >
+          Your purchase was successful!
         </Alert>
       </Snackbar>
     </Box>
   );
 };
-
 export default Cart;

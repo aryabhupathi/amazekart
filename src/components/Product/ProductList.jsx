@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Container,
@@ -34,10 +34,10 @@ const ProductList = () => {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     Promise.all([
-      fetch("https://fakestoreapi.com/products/categories").then((res) =>
+      fetch("https://fakestoreapi.com/products/categories ").then((res) =>
         res.json()
       ),
-      fetch("https://fakestoreapi.com/products").then((res) => res.json()),
+      fetch("https://fakestoreapi.com/products ").then((res) => res.json()),
     ])
       .then(([categoryData, productData]) => {
         setCategories(categoryData);
@@ -61,7 +61,7 @@ const ProductList = () => {
     setSelectedCategory("");
     localStorage.removeItem("selectedCategory");
   };
-  const handlePageChange = (value) => {
+  const handlePageChange = (event, value) => {
     setCurrentPage(value);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -85,14 +85,19 @@ const ProductList = () => {
     );
   }
   return (
-    <Container sx={{ mt: 4 }}>
+    <Container sx={{ mt: 4, mb: 8 }}>
       <Box
         textAlign="center"
         py={4}
         px={3}
-        sx={{ bgcolor: "#fff8f0", borderRadius: 3, mb: 4 }}
+        sx={{
+          bgcolor: "#fff0f4",
+          borderRadius: 3,
+          mb: 4,
+          boxShadow: 2,
+        }}
       >
-        <Typography variant="h3" fontWeight="bold" color="#d84315" gutterBottom>
+        <Typography variant="h3" fontWeight="bold" color="#FF6B6B" gutterBottom>
           Welcome to ShopCart
         </Typography>
         <Typography variant="h6" color="textSecondary" maxWidth={700} mx="auto">
@@ -105,7 +110,7 @@ const ProductList = () => {
           p: 3,
           mb: 4,
           borderRadius: 4,
-          bgcolor: "white",
+          bgcolor: "#ffffff",
           boxShadow: 3,
           border: "1px solid #e0e0e0",
           display: "flex",
@@ -123,7 +128,7 @@ const ProductList = () => {
           variant="h6"
           sx={{
             fontWeight: 700,
-            color: "#d84315",
+            color: "#FF6B6B",
             display: "flex",
             alignItems: "center",
             gap: 1,
@@ -223,7 +228,11 @@ const ProductList = () => {
                   alt={product.title}
                 />
                 <CardContent
-                  sx={{ display: "flex", flexDirection: "column", flexGrow: 1 }}
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    flexGrow: 1,
+                  }}
                 >
                   <Tooltip title={product.title}>
                     <Typography
@@ -252,8 +261,13 @@ const ProductList = () => {
                     component={Link}
                     to={`/product/${product.id}`}
                     variant="contained"
-                    color="primary"
-                    sx={{ mt: 2 }}
+                    sx={{
+                      mt: 2,
+                      bgcolor: "#FF6B6B",
+                      "&:hover": {
+                        bgcolor: "#F9A825",
+                      },
+                    }}
                     fullWidth
                   >
                     View Details
@@ -269,7 +283,18 @@ const ProductList = () => {
           count={Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)}
           page={currentPage}
           onChange={handlePageChange}
-          color="primary"
+          sx={{
+            "& .MuiPaginationItem-root": {
+              color: "#FF6B6B",
+            },
+            "& .Mui-selected": {
+              background: "#FF6B6B",
+              color: "#fff",
+              "&:hover": {
+                background: "#F9A825",
+              },
+            },
+          }}
         />
       </Box>
     </Container>
